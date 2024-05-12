@@ -37,7 +37,6 @@ const db = new pg.Client({
   password: process.env.PG_PASSWORD,
   port: process.env.PG_PORT,
 });
-console.log("pass--: ", process.env.PG_PASSWORD)
 db.connect()
 .then(() => console.log('Connected to PostgreSQL'))
 .catch(err => console.error('Error connecting to PostgreSQL:', err));
