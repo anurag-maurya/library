@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+
+<main class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="card-title text-center mb-4">Enter your details</h1>
+
+          <!-- Makes POST request to /addUser route -->
+          <form action="/addUser" method="post">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="Enter your mail id" required>
+            </div>
+            <div class="mb-3">
+              <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+            <div class="mb-3">
+              <label for="about" class="form-label">About <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="about" name="about" rows="3" placeholder="Tell something about yourself" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="profileLink" class="form-label">Link (Optional)</label>
+              <input class="form-control" id="profileLink" name="profileLink" placeholder="Any social media profile link">
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Set password <span class="text-danger">*</span></label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="text-center">
+              <button type="submit" id="editButton" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

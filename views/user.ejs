@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+    <main class="text-center mx-auto col-8"> 
+      <h1><a href="<%= user.profilelink %>" target="_blank" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"><%= user.name %></a></h1>
+      <h3><%= user.about %></h3>
+        <% if(same_user){ %>
+        <form id="addBookForm" action="/add" method="post">
+            <button type="button" class="btn btn-outline-light bg-black btn-lg mb-2" onclick="addBook()">Add Book</button>
+        </form>
+        <% } %>
+        <% books.forEach((book)=>{%>
+        
+        <div class="card mb-3 bg-black">
+            <div class="row g-0 align-items-center">
+              <div class="col-md-4 d-flex justify-content-center">
+                <img src="https://covers.openlibrary.org/b/isbn/<%= book.isbn %>-M.jpg" class="img-fluid rounded-start" alt="...">
+              </div>
+              <div class="col-md-8">
+                <div class="card-body">
+                  <h5 class="card-title text-light"><%= book.title %></h5>
+                  <p class="card-text text-light"><%= book.description %></p>
+                  <p class="card-text"><small class="text-light">
+                    Read On: <%= new Date(book.readdate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                  </small></p>
+                  <p class="card-text"><small class="text-light">
+                    Rating: <%= book.rating %>/10
+                  </small></p>
+                  <% if(same_user){ %>
+
+                  <div class="btn-group" role="group" aria-label="Basic outlined example">
+                    <form action="/edit" method="post">
+                        <button type="submit" class="btn btn-outline-light" name="bookId" value=<%= book.id %>>Edit</button>
+                    </form>
+                    <form action="/delete" method="post">
+                        <button type="submit" class="btn btn-outline-light" name="bookId" value=<%= book.id %>>Delete</button>
+                    </form>
+                  </div>
+                  <% } %>
+                  
+                </div>
+                
+                
+                
+                
+              </div>
+            </div>
+          </div>
+        <%}) %>
+    </main>
+    <script>
+        function addBook() {
+            // Get the user ID from wherever it's stored (e.g., a hidden input field, a data attribute, etc.)
+            var userId = "<%= user.id %>"; // This assumes user.id is accessible in your template engine
+
+            // Add the user ID to the form data
+            var form = document.getElementById("addBookForm");
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "userId";
+            input.value = userId;
+            form.appendChild(input);
+
+            // Submit the form
+            form.submit();
+        }
+    </script>
+<%- include('partials/footer') %>

@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+
+<main class="text-center mx-auto col-8">
+  <div class="row">
+    <% users.forEach((user, index) => { %>
+      <div class="col-sm-6 mb-3">
+        <div class="card bg-black text-light">
+          <div class="card-body">
+            <h5 class="card-title"><%= user.name %></h5>
+            <p class="card-text"><%= user.about %></p>
+            <p>Books read: <%= user.count %></p>
+            <form action="/user" method="get">
+              <input type="hidden" name="userId" value="<%= user.id %>">
+              <button class="btn btn-light" type="submit">Check the library</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <% if ((index + 1) % 2 === 0 || index === users.length - 1) { %>
+        </div><div class="row">
+      <% } %>
+    <% }) %>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

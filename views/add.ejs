@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+
+<main class="container mt-5">
+  <h1 class="mb-4">Add Book Details</h1>
+  <div class="row">
+    <div class="col-md-6">
+      <form action="/add" method="post">
+        <div class="mb-3">
+          <label for="title" class="form-label">Book Title <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="title" name="title" placeholder="Enter title of book" required>
+        </div>
+        <div class="mb-3">
+          <label for="readDate" class="form-label">Read Date <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" id="readDate" name="readDate" required>
+        </div>
+        <div class="mb-3">
+          <label for="rating" class="form-label">Rating <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" id="rating" name="rating" min="1" max="10" required>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter the description" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="isbn" class="form-label">ISBN Number</label>
+          <input type="text" class="form-control" id="isbn" name="isbn" placeholder="Enter ISBN Number of book for cover">
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="favourite" name="favourite">
+          <label class="form-check-label" for="favorite">Is it your favourite book?</label>
+        </div>
+        <input type="hidden" name="userId" value="<%= userId %>">
+        <button type="submit" id="editButton" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the current date in the format YYYY-MM-DD
+        const today = new Date().toISOString().split('T')[0];
+
+        // Set the value of the input field to today's date
+        document.getElementById('readDate').value = today;
+    });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<main class="text-center mx-auto col-8">
+  <% books.forEach((book) => { %>
+    <div class="card mb-3 bg-black">
+      <div class="row g-0 align-items-center">
+        <div class="col-md-4 d-flex justify-content-center">
+          <img src="https://covers.openlibrary.org/b/isbn/<%= book.isbn %>-M.jpg" class="img-fluid rounded-start" alt="Book Cover">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title text-light"><%= book.title %></h5>
+            <p class="card-text text-light"><%= book.description %></p>
+            <p class="card-text"><small class="text-light">
+              Read On: <%= new Date(book.readdate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+            </small></p>
+            <p class="card-text"><small class="text-light">
+              Rating: <%= book.rating %>/10
+            </small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</main>
+
+<%- include('partials/footer') %>
