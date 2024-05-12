@@ -50,10 +50,6 @@ app.get("/user", async (req, res) => {
   if (req.user?.id) {
     same_user = req.query?.userId ? req.query.userId == req.user.id : true;
   }
-  console.log("user data=>", userId);
-  console.log(req.query?.userId);
-  console.log(req.user?.id);
-  console.log("same user : ", same_user);
   const book = await db.query("SELECT * FROM books WHERE userId=$1", [userId]);
   const user = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
 
@@ -71,7 +67,6 @@ app.get("/", async (req, res) => {
   );
   const users = await db.query("SELECT * FROM users");
   console.log("user data=>", users.rows);
-  console.log("book-->", books.rows);
   users.rows.forEach((user) => {
     const matchingBook = books.rows.find((book) => book.userid == user.id);
     user.count = matchingBook ? parseInt(matchingBook.count) : 0;
@@ -81,7 +76,6 @@ app.get("/", async (req, res) => {
 
 app.get("/books", async (req, res) => {
   const books = await db.query("SELECT * FROM books");
-  console.log("book-->", books.rows);
   res.render("books.ejs", { books: books.rows });
 });
 
@@ -152,7 +146,7 @@ app.post("/add", async (req, res) => {
       values
     );
 
-    res.redirect("/");
+    res.redirect("/user");
   } catch (error) {
     console.log("Error while adding data in table:", error);
     res.status(500).send("Error while adding data.");
