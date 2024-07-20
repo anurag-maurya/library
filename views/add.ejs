@@ -23,11 +23,7 @@
         </div>
         <div class="mb-3">
           <label for="isbn" class="form-label">ISBN Number</label>
-          <input type="text" class="form-control" id="isbn" name="isbn" placeholder="Enter ISBN Number of book for cover">
-        </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="favourite" name="favourite">
-          <label class="form-check-label" for="favorite">Is it your favourite book?</label>
+          <input type="text" class="form-control" id="isbn" name="isbn" placeholder="Enter ISBN Number of book for cover" data-toggle="tooltip" title="ISBN number will be used to get the cover of book if number is correct then cover will be visible">
         </div>
         <input type="hidden" name="userId" value="<%= userId %>">
         <button type="submit" id="editButton" class="btn btn-primary">Submit</button>
@@ -43,6 +39,9 @@
         // Set the value of the input field to today's date
         document.getElementById('readDate').value = today;
     });
+    $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip(); 
+  });
 </script>
 
 <%- include('partials/footer') %>

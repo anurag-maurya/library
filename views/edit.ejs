@@ -26,10 +26,6 @@
           <label for="isbn" class="form-label">ISBN Number</label>
           <input type="text" class="form-control" id="isbn" name="isbn" value="<%= book.isbn %>">
         </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="favourite" name="favourite" <%= book.favourite ? 'checked' : '' %>>
-          <label class="form-check-label" for="favorite">Add to Favorites</label>
-        </div>
         <button type="submit" id="editButton" class="btn btn-primary">Submit</button>
       </form>
     </div>

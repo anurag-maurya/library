@@ -5,7 +5,10 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
+const flash = await import('connect-flash').then(module => module.default);
+// const flash = require('connect-flash');
 import env from "dotenv";
+const { Pool } = pg;
 
 const app = express();
 const port = 3000;
@@ -27,24 +30,38 @@ app.use(
   })
 );
 
+// Configure flash middleware
+app.use(flash());
+
+// Make flash messages available to all templates
+app.use((req, res, next) => {
+  res.locals.success_messages = req.flash('success');
+  res.locals.error_messages = req.flash('error');
+  next();
+});
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-const db = new pg.Client({
-  user: process.env.PG_USER,
-  host: process.env.PG_HOST,
-  database: process.env.PG_DATABASE,
-  password: process.env.PG_PASSWORD,
-  port: process.env.PG_PORT,
+// const db = new pg.Client({
+//   user: process.env.PG_USER,
+//   host: process.env.PG_HOST,
+//   database: process.env.PG_DATABASE,
+//   password: process.env.PG_PASSWORD,
+//   port: process.env.PG_PORT,
+// });
+// db.connect()
+// .then(() => console.log('Connected to PostgreSQL'))
+// .catch(err => console.error('Error connecting to PostgreSQL:', err));
+
+const db = new Pool({
+  connectionString: process.env.POSTGRES_URL,
 });
-db.connect()
-.then(() => console.log('Connected to PostgreSQL'))
-.catch(err => console.error('Error connecting to PostgreSQL:', err));
 
 let current_user;
 
 app.get("/user", async (req, res) => {
-  console.log("req user from callback : ", req.user);
+  // console.log("req user from callback : ", sanitizeUsers([req.user]));
   const userId = req.query?.userId || req.user?.id;
   let same_user;
   if (req.user?.id) {
@@ -66,13 +83,19 @@ app.get("/", async (req, res) => {
     "SELECT userId, COUNT(*) FROM books GROUP BY userId"
   );
   const users = await db.query("SELECT * FROM users");
-  console.log("user data=>", users.rows);
+  console.log("user data=>", sanitizeUsers(users.rows));
   users.rows.forEach((user) => {
     const matchingBook = books.rows.find((book) => book.userid == user.id);
     user.count = matchingBook ? parseInt(matchingBook.count) : 0;
   });
   res.render("home.ejs", { users: users.rows });
 });
+function sanitizeUsers(users) {
+  return users.map(user => {
+    const { password, ...sanitizedUser } = user; // Destructure to exclude password
+    return sanitizedUser;
+  });
+}
 
 app.get("/books", async (req, res) => {
   const books = await db.query("SELECT * FROM books");
@@ -84,13 +107,12 @@ app.post("/edit", async (req, res) => {
   try {
     if (!!req.body.rating) {
       await db.query(
-        "UPDATE books SET title = $2, readdate = $3, rating = $4, favourite = $5, description = $6, isbn = $7 WHERE id = $1",
+        "UPDATE books SET title = $2, readdate = $3, rating = $4, description = $5, isbn = $6 WHERE id = $1",
         [
           req.body.bookId,
           req.body.title,
           req.body.readDate,
           req.body.rating,
-          req.body?.favourite ? true : false,
           req.body.description,
           req.body.isbn,
         ]
@@ -121,7 +143,7 @@ app.post("/edit", async (req, res) => {
 app.post("/add", async (req, res) => {
   try {
     console.log("req body in add: ", req.body);
-    const { title, readDate, rating, description, isbn, favourite, userId } =
+    const { title, readDate, rating, description, isbn, userId } =
       req.body;
 
     if (!rating) {
@@ -133,15 +155,14 @@ app.post("/add", async (req, res) => {
       title,
       readDate,
       rating,
-      favourite ? true : false,
       description,
       isbn,
     ];
 
     await db.query(
       `
-            INSERT INTO books(userid, title, readdate, rating, favourite, description, isbn)
-            VALUES($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO books(userid, title, readdate, rating, description, isbn)
+            VALUES($1, $2, $3, $4, $5, $6)
         `,
       values
     );
@@ -191,13 +212,36 @@ app.get("/login", async (req, res) => {
   res.render("login.ejs");
 });
 
+// app.post(
+//   "/login",
+//   // ()=>{console.log(`here with req ==> ${req.data}`)},
+//   passport.authenticate("local", {
+//     successRedirect: "/user",
+//     failureRedirect: "/login",
+//   })
+// );
+
 app.post(
   "/login",
-  passport.authenticate("local", {
-    successRedirect: "/user",
-    failureRedirect: "/login",
-  })
+  (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        req.flash("error", "Invalid email or password.");
+        return res.redirect("/login");
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.redirect("/user");
+      });
+    })(req, res, next);
+  }
 );
+
 
 app.post("/delete", async (req, res) => {
   console.log("BookId to delete: ", req.body.bookId);
