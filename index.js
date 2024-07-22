@@ -3,12 +3,14 @@ import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import connectPgSimple from 'connect-pg-simple';
 import passport from "passport";
 import { Strategy } from "passport-local";
 const flash = await import('connect-flash').then(module => module.default);
 // const flash = require('connect-flash');
 import env from "dotenv";
 const { Pool } = pg;
+const PgSession = connectPgSimple(session);
 
 const app = express();
 const port = 3000;
@@ -19,13 +21,41 @@ env.config();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+const db = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+});
+
+// Ensure the pool connection is established before using it in the session store
+db.connect()
+  .then(client => {
+    console.log('Connected to PostgreSQL');
+    client.release(); // Release the client back to the pool
+  })
+  .catch(err => console.error('Error connecting to PostgreSQL:', err));
+
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET, // encryption key
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: {
+//       maxAge: 1000 * 60 * 60,
+//     },
+//   })
+// );
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, // encryption key
+    store: new PgSession({
+      pool: db, // Connection pool
+      tableName: 'session', // Use another table-name than the default "session" one
+    }),
+    secret: process.env.SESSION_SECRET, // Encryption key
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60,
+      maxAge: 1000 * 60 * 60, // 1 hour
+      secure: process.env.NODE_ENV === 'production', // Ensure cookies are only used over HTTPS
     },
   })
 );
@@ -54,9 +84,7 @@ app.use(passport.session());
 // .then(() => console.log('Connected to PostgreSQL'))
 // .catch(err => console.error('Error connecting to PostgreSQL:', err));
 
-const db = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-});
+
 
 let current_user;
 
@@ -276,7 +304,7 @@ passport.use(
           }
         });
       } else {
-        return cb("User not found");
+        return cb(null, false, { message: 'User not found' });
       }
     } catch (err) {
       return cb(err);
@@ -286,11 +314,20 @@ passport.use(
 
 // serialize and deserialize is use to store session in local storage and remove session
 passport.serializeUser((user, cb) => {
-  cb(null, user);
+  cb(null, user.id);
 });
 
-passport.deserializeUser((user, cb) => {
-  cb(null, user);
+passport.deserializeUser(async (id, cb) => {
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+    if (result.rows.length > 0) {
+      cb(null, result.rows[0]);
+    } else {
+      cb(new Error('User not found'));
+    }
+  } catch (err) {
+    cb(err);
+  }
 });
 
 app.listen(port, () => {
